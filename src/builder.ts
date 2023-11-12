@@ -2,7 +2,7 @@ import { BuilderOptions, CompleteBuilderOptions, ServeOptions } from "./options.
 import { denoPlugins } from "./deps/esbuild_deno_loader.ts";
 import { coalesce } from "./deps/coalesce.ts";
 import esbuild from "./deps/esbuild.ts";
-import { parse as parseDOM } from "npm:node-html-parser";
+import { HTMLElement, parse as parseDOM } from "npm:node-html-parser";
 import { fs, path } from "./deps/std.ts";
 import { merge } from "./asyncIteratorExtensions.ts";
 
@@ -18,7 +18,8 @@ const defaultOptions: CompleteBuilderOptions = {
     esbuildOptions: undefined,
     staticResources: [],
     dropLabels: [],
-    minifySyntax: false
+    minifySyntax: false,
+    bundleTargets: [/.*\.(jsx|tsx|js|ts)/]
 };
 
 export class Builder {
@@ -88,24 +89,7 @@ export async function preprocess(options: CompleteBuilderOptions) {
     const indexFile = await Deno.readTextFile(options.documentFilePath);
     const documentRoot = parseDOM(indexFile);
 
-    if (documentRoot === null) {
-        throw new Error(`entry document was not exists.`);
-    }
-
-    const scriptElems = documentRoot.querySelectorAll(`script[type="module"][src]`);
-    for (const s of scriptElems) {
-        s.remove();
-    }
-    const scriptSources = scriptElems.map(s => s.getAttribute("src")!).map(path.normalize);
-    const document = documentRoot.getElementsByTagName("html")[0];
-
-    for (const source of scriptSources) {
-        const ext = path.extname(source);
-        const base = path.common([path.normalize(options.outbase), source]);
-        const src = source.substring(base.length, source.length - ext.length);
-        const scriptElem = parseDOM(`<script type="module" src="${src}.js"></script>`);
-        document.appendChild(scriptElem);
-    }
+    const entryPoints = preprocessDocument(options, documentRoot);
 
     if (!(await fs.exists(options.outdir))) {
         await Deno.mkdir(options.outdir);
@@ -129,7 +113,7 @@ export async function preprocess(options: CompleteBuilderOptions) {
                 loader: options.denoPluginLoader
             })
         ],
-        entryPoints: scriptSources,
+        entryPoints,
         outdir: options.outdir,
         outbase: options.outbase,
         bundle: true,
@@ -140,4 +124,69 @@ export async function preprocess(options: CompleteBuilderOptions) {
 
 
     return await esbuild.context(esbuildOptions);
+}
+
+
+function preprocessDocument(options: CompleteBuilderOptions, documentRoot: HTMLElement): string[] {
+    const entryPoints: string[] = [];
+
+    const scriptSources: string[] = [];
+    const scriptElems = documentRoot.querySelectorAll(`script[type="module"][src]`);
+
+    for (const e of scriptElems) {
+        const source = e.getAttribute("src")!;
+        if (!matchTargetFilter(options.bundleTargets, source)) {
+            continue;
+        }
+        e.remove();
+        entryPoints.push(source);
+        scriptSources.push(path.normalize(source));
+    }
+
+    const linkElems = documentRoot.querySelectorAll(`link[href]`);
+    const links: { href: string, rel: string | undefined; }[] = [];
+
+    for (const e of linkElems) {
+        const hrefAttr = e.getAttribute("href")!;
+        const rel = e.getAttribute("rel");
+        if (!matchTargetFilter(options.bundleTargets, hrefAttr)) {
+            continue;
+        }
+        e.remove();
+        entryPoints.push(hrefAttr);
+        const href = path.normalize(hrefAttr);
+        links.push({ href, rel });
+    }
+
+    const document = documentRoot.getElementsByTagName("html")[0];
+
+    for (const source of scriptSources) {
+        const ext = path.extname(source);
+        const base = path.common([path.normalize(options.outbase), source]);
+        const src = source.substring(base.length, source.length - ext.length);
+        const scriptElem = parseDOM(`<script type="module" src="${src}.js"></script>`);
+        document.appendChild(scriptElem);
+    }
+
+    for (const { href, rel } of links) {
+        const base = path.common([path.normalize(options.outbase), href]);
+        const src = href.substring(base.length);
+        const relAttr = rel === undefined ? "" : `rel="${rel}"`;
+        const linkElem = parseDOM(`<link ${relAttr} href="${src}"></script>`);
+        document.appendChild(linkElem);
+    }
+
+    return entryPoints;
+}
+
+function matchTargetFilter(filter: (string | RegExp)[], target: string): boolean {
+    const index = filter.findIndex(pat => {
+        if (pat instanceof RegExp) {
+            return target.match(pat);
+        } else {
+            return target === pat;
+        }
+    });
+
+    return index !== -1;
 }

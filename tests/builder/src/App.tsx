@@ -5,7 +5,7 @@ export default function App() {
 
   return (
     <div className="container">
-      <h1>Welcome to Tauri!</h1>
+      <h1 className="text-3xl font-bold underline">Welcome to Tauri!</h1>
 
       <div className="row">
         <a href="https://deno.com" target="_blank">

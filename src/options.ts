@@ -13,6 +13,7 @@ export type CompleteBuilderOptions = {
     denoConfigPath?: string;
     importMapURL?: string;
     nodeModulesDir?: boolean;
+    bundleTargets: (RegExp | string)[];
     denoPluginLoader?: "native" | "portable";
 };
 
