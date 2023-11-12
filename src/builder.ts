@@ -33,7 +33,7 @@ export class Builder {
         const context = await preprocess(options);
 
         console.log("Building...");
-        const result = await esbuild.build(context);
+        const result = await context.rebuild();
         console.log("Done build!");
         console.log(result);
         await context.dispose();
