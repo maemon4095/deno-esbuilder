@@ -1,8 +1,7 @@
 import { Builder } from "../../src/builder.ts";
-import esbuild from "../../src/deps/esbuild.ts";
 import { BuilderOptions } from "../../src/options.ts";
-import postcss from "npm:postcss";
 import tailwindcss from "npm:tailwindcss";
+import { postCssPlugin } from "../../plugins/postCssPlugin.ts";
 
 const mode = Deno.args.at(0);
 if (mode === undefined) {
@@ -36,26 +35,3 @@ switch (mode) {
     }
 }
 
-
-function postCssPlugin(plugins: postcss.AcceptedPlugin[]): esbuild.Plugin {
-    const name = "postCssPlugin";
-
-    return {
-        name,
-        setup(build) {
-            build.onResolve({ filter: /.*\.css/ }, args => ({
-                path: args.path,
-                namespace: name,
-            }));
-
-            build.onLoad({ filter: /.*/, namespace: name }, async args => {
-                const cssdata = await Deno.readFile(args.path);
-                const cssfile = new TextDecoder().decode(cssdata);
-
-                const result = await postcss(plugins).process(cssfile, { from: args.path });
-
-                return { contents: result.css, loader: "css" };
-            });
-        }
-    };
-}
