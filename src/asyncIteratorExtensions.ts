@@ -1,15 +1,26 @@
-export function merge<T>(...iters: AsyncIterable<T>[]): AsyncIterable<T> {
-    const iter = mergeIter(...iters.map(i => i[Symbol.asyncIterator]()));
+export function merge<T extends {} | null>(...iters: AsyncIterable<T>[]): AsyncIterable<T> {
+    const iterators = iters.map(i => i[Symbol.asyncIterator]());
+    const channel = new AsyncChannel<T>();
 
-    return {
-        [Symbol.asyncIterator]() {
-            return iter;
-        },
-    };
+    let count = iterators.length;
+    for (const iter of iterators) {
+        eventify(iter, v => { channel.send(v); }, () => {
+            count--;
+            if (count === 0) {
+                channel.close();
+            }
+        });
+    }
+
+    if (iters.length === 0) {
+        channel.close();
+    }
+
+    return channel;
 }
 
 
-function eventy<T>(iter: AsyncIterator<T>, callback: (v: T) => void, endCallback: () => void) {
+function eventify<T>(iter: AsyncIterator<T>, callback: (v: T) => void, endCallback: () => void) {
     new Promise(async r => {
         while (true) {
             const { done, value } = await iter.next();
@@ -24,34 +35,9 @@ function eventy<T>(iter: AsyncIterator<T>, callback: (v: T) => void, endCallback
 }
 
 
-export function mergeIter<T>(...iters: AsyncIterator<T>[]): AsyncIterator<T> {
-    const iterators = Array.from(iters);
-    const channel = new AsyncChannel<T>();
-
-    let count = iterators.length;
-    for (const iter of iterators) {
-        eventy(iter, v => { channel.send(v); }, () => {
-            count--;
-            if (count === 0) {
-                channel.close();
-            }
-        });
-    }
-
-    return {
-        next: async function (): Promise<IteratorResult<T, any>> {
-            const value = await channel.receive();
-            if (value === null) {
-                return { done: true, value: undefined };
-            }
-            return { done: false, value };
-        }
-    };
-}
-
-export class AsyncChannel<T> {
+export class AsyncChannel<T extends {} | null> implements AsyncIterable<T> {
     #items: Queue<T>;
-    #waitings: Queue<(v: T | null) => void>;
+    #waitings: Queue<(v: T | undefined) => void>;
     #isClosed;
     constructor() {
         this.#items = new Queue();
@@ -64,6 +50,10 @@ export class AsyncChannel<T> {
     }
 
     send(value: T) {
+        if (this.#isClosed) {
+            throw new Error("send called on already closed channel.");
+        }
+
         if (this.#waitings.isEmpty) {
             this.#items.enqueue(value);
             return;
@@ -73,25 +63,42 @@ export class AsyncChannel<T> {
     }
 
     close() {
+        if (this.#isClosed) {
+            return;
+        }
+
         this.#isClosed = true;
         while (true) {
             const callback = this.#waitings.dequeue();
             if (callback === null) {
                 break;
             }
-            callback(null);
+            callback(undefined);
         }
     }
 
-    async receive(): Promise<T | null> {
+    async receive(): Promise<T | undefined> {
         if (this.#isClosed) {
-            return null;
+            return undefined;
         }
 
         if (!this.#items.isEmpty) {
             return this.#items.dequeue()!;
         }
         return await new Promise(e => this.#waitings.enqueue(e));
+    }
+
+    [Symbol.asyncIterator](): AsyncIterator<T> {
+        const self = this;
+        return {
+            async next() {
+                const value = await self.receive();
+                if (value === undefined) {
+                    return { done: true, value };
+                }
+                return { done: false, value };
+            }
+        };
     }
 }
 

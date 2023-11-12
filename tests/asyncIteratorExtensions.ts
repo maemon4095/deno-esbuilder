@@ -1,17 +1,17 @@
-import { mergeIter } from "../src/asyncIteratorExtensions.ts";
+import { merge } from "../src/asyncIteratorExtensions.ts";
 import { assertEquals } from "https://deno.land/std@0.206.0/assert/mod.ts";
 
-Deno.test("mergeIter without args", async () => {
-    const iter = mergeIter();
+Deno.test("merge without args", async () => {
+    const iter = merge()[Symbol.asyncIterator]();
     const result = await iter.next();
 
     assertEquals(result, { done: true, value: undefined });
 });
 
-Deno.test("mergeIter with sequential args", async () => {
+Deno.test("merge with sequential args", async () => {
     const size = 10;
     const delay = 100;
-    const iters: AsyncIterator<number>[] = [];
+    const iters: AsyncIterable<number>[] = [];
     for (let i = 1; i <= size; ++i) {
         const v = i;
         const iter = async function* () {
@@ -22,19 +22,13 @@ Deno.test("mergeIter with sequential args", async () => {
         iters.push(iter());
     }
 
-    const iter = mergeIter(...iters);
+    const iter = merge(...iters);
 
     let count = 0;
-    while (true) {
-        const result = await iter.next();
-        if (result.done) {
-            break;
-        }
-
-        assertEquals(result.value, count + 1);
+    for await (const item of iter) {
+        assertEquals(item, count + 1);
 
         count++;
     }
-
     assertEquals(count, size);
 });
