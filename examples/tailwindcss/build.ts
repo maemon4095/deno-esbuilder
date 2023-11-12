@@ -2,6 +2,7 @@ import { Builder } from "../../src/builder.ts";
 import { BuilderOptions } from "../../src/options.ts";
 import tailwindcss from "npm:tailwindcss";
 import { postCssPlugin } from "../../plugins/postCssPlugin.ts";
+import tailwindConfig from "./tailwind.config.js";
 
 const mode = Deno.args.at(0);
 if (mode === undefined) {
@@ -13,11 +14,7 @@ const options: BuilderOptions = {
     bundleTargets: [/.*\.(jsx|tsx|js|ts|css)/],
     esbuildPlugins: [
         postCssPlugin([
-            tailwindcss({
-                content: {
-                    files: ["./src/**/*.{tsx, ts}"]
-                },
-            })
+            tailwindcss(tailwindConfig)
         ])
     ]
 };
