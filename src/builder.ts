@@ -10,7 +10,6 @@ const defaultCommonOptions = {
     outdir: "./dist",
     outbase: "src",
     esbuildPlugins: [],
-    bundle: false,
     documentFilePath: "./index.html",
     serve: {
         port: 1415,
@@ -123,9 +122,10 @@ export async function preprocess(profile: BuilderProfile) {
     const document = documentRoot.getElementsByTagName("html")[0];
 
     for (const source of scriptSources) {
+        const ext = path.extname(source);
         const base = path.common([path.normalize(profile.outbase), source]);
-        const src = source.substring(base.length);
-        const scriptElem = parseDOM(`<script type="module" src="${src}"></script>`);
+        const src = source.substring(base.length, source.length - ext.length);
+        const scriptElem = parseDOM(`<script type="module" src="${src}.js"></script>`);
         document.appendChild(scriptElem);
     }
 
@@ -146,7 +146,7 @@ export async function preprocess(profile: BuilderProfile) {
         plugins: [
             ...profile.esbuildPlugins,
             ...denoPlugins({
-                configPath: profile.denoConfigPath,
+                configPath: profile.denoConfigPath !== undefined ? path.resolve(profile.denoConfigPath) : undefined,
                 importMapURL: profile.importMapURL,
                 nodeModulesDir: profile.nodeModulesDir,
                 loader: profile.denoPluginLoader
@@ -155,7 +155,7 @@ export async function preprocess(profile: BuilderProfile) {
         entryPoints: scriptSources,
         outdir: profile.outdir,
         outbase: profile.outbase,
-        bundle: profile.bundle,
+        bundle: true,
         format: "esm",
         platform: "browser"
     };

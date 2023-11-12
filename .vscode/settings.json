@@ -1,5 +1,8 @@
 {
     "deno.enable": true,
     "deno.lint": false,
-    "deno.unstable": false
+    "deno.unstable": false,
+    "deno.disablePaths": [
+        "tests/builder/**"
+    ],
 }

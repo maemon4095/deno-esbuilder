@@ -7,8 +7,7 @@ export type BuilderOptions = Optional<BuilderProfile> & {
 export type BuilderProfile = {
     esbuildPlugins: esbuild.Plugin[];
     outdir: string,
-    outbase: string,
-    bundle: boolean;
+    outbase: string;
     documentFilePath: string;
     serve: ServeOptions;
     esbuildOptions?: esbuild.BuildOptions,
