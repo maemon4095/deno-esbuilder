@@ -118,7 +118,6 @@ export async function preprocess(options: CompleteBuilderOptions) {
     await outIndexFile.write(new TextEncoder().encode(documentRoot.toString()));
 
     const esbuildOptions: esbuild.BuildOptions = {
-        ...options.esbuildOptions,
         plugins: [
             ...options.esbuildPlugins,
             ...denoPlugins({
@@ -133,7 +132,8 @@ export async function preprocess(options: CompleteBuilderOptions) {
         outbase: options.outbase,
         bundle: true,
         format: "esm",
-        platform: "browser"
+        platform: "browser",
+        ...options.esbuildOptions,
     };
 
 
