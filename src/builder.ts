@@ -37,6 +37,7 @@ export class Builder {
         console.log("Done build!");
         console.log(result);
         await context.dispose();
+        esbuild.stop();
     }
 
     async serve(options: Partial<ServeOptions> = {}) {
@@ -67,6 +68,7 @@ export class Builder {
         }
 
         await context.dispose();
+        esbuild.stop();
     }
 }
 
