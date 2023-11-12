@@ -8,6 +8,7 @@ import { merge } from "./asyncIteratorExtensions.ts";
 
 const defaultCommonOptions = {
     outdir: "./dist",
+    outbase: "src",
     esbuildPlugins: [],
     bundle: false,
     documentFilePath: "./index.html",
@@ -118,12 +119,15 @@ export async function preprocess(profile: BuilderProfile) {
     for (const s of scriptElems) {
         s.remove();
     }
-    const scriptSources = scriptElems.map(s => s.getAttribute("src")!);
-    const scriptElem = parseDOM(`<script type="module" src="/index.js"></script>`);
-
+    const scriptSources = scriptElems.map(s => s.getAttribute("src")!).map(path.normalize);
     const document = documentRoot.getElementsByTagName("html")[0];
 
-    document.appendChild(scriptElem);
+    for (const source of scriptSources) {
+        const base = path.common([path.normalize(profile.outbase), source]);
+        const src = source.substring(base.length);
+        const scriptElem = parseDOM(`<script type="module" src="${src}"></script>`);
+        document.appendChild(scriptElem);
+    }
 
     if (!(await fs.exists(profile.outdir))) {
         await Deno.mkdir(profile.outdir);
@@ -150,6 +154,7 @@ export async function preprocess(profile: BuilderProfile) {
         ],
         entryPoints: scriptSources,
         outdir: profile.outdir,
+        outbase: profile.outbase,
         bundle: profile.bundle,
         format: "esm",
         platform: "browser"
