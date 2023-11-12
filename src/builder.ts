@@ -12,7 +12,7 @@ const defaultCommonOptions = {
     bundle: false,
     documentFilePath: "./index.html",
     serve: {
-        port: 0,
+        port: 1415,
         watch: ["src"]
     },
     esbuildOptions: undefined,
