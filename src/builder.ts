@@ -78,6 +78,8 @@ export class Builder {
 
         const watcher = watch(profile.serve.watch);
         console.log("Watching...");
+
+
         for await (const e of watcher) {
             console.log(`File Update: (${e.kind}) ${e.paths}.`);
             await context.rebuild();
@@ -100,7 +102,6 @@ export function watch(targets: (string | { path: string, recursive: boolean; })[
     const watchers = recursives
         .map(t => Deno.watchFs(t))
         .concat(shallows.map(t => Deno.watchFs(t, { recursive: false })));
-
 
     return merge(...watchers);
 }
