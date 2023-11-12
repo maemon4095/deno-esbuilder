@@ -1,4 +1,4 @@
-import { BuilderOptions, BuilderProfile, ProfileName, ServeOptions } from "./options.ts";
+import { BuilderOptions, CompleteBuilderOptions, ServeOptions } from "./options.ts";
 import { denoPlugins } from "./deps/esbuild_deno_loader.ts";
 import { coalesce } from "./deps/coalesce.ts";
 import esbuild from "./deps/esbuild.ts";
@@ -6,7 +6,7 @@ import { parse as parseDOM } from "npm:node-html-parser";
 import { fs, path } from "./deps/std.ts";
 import { merge } from "./asyncIteratorExtensions.ts";
 
-const defaultCommonOptions = {
+const defaultOptions: CompleteBuilderOptions = {
     outdir: "./dist",
     outbase: "src",
     esbuildPlugins: [],
@@ -16,40 +16,21 @@ const defaultCommonOptions = {
         watch: ["src"]
     },
     esbuildOptions: undefined,
-    staticResources: []
-};
-
-
-const defaultReleaseOptions: BuilderProfile = {
-    ...defaultCommonOptions,
-    dropLabels: ["DEV"],
-    minifySyntax: true
-};
-
-const defaultDevOptions: BuilderProfile = {
-    ...defaultCommonOptions,
+    staticResources: [],
     dropLabels: [],
     minifySyntax: false
 };
 
 export class Builder {
-    #profileName: ProfileName;
-    #profiles: { [p in ProfileName]: BuilderProfile };
+    #options: CompleteBuilderOptions;
 
     constructor(options: BuilderOptions) {
-        const optReleaseOptions = { ...options, ...(options.release) };
-        const optDevOptions = { ...options, ...(options.dev) };
-
-        this.#profileName = options.profileName;
-        this.#profiles = {
-            release: coalesce(optReleaseOptions, defaultReleaseOptions),
-            dev: coalesce(optDevOptions, defaultDevOptions),
-        };
+        this.#options = coalesce(options, defaultOptions);
     }
 
     async build() {
-        const profile = this.#getProfile();
-        const context = await preprocess(profile);
+        const options = this.#options;
+        const context = await preprocess(options);
 
         console.log("Building...");
         const result = await esbuild.build(context);
@@ -59,24 +40,24 @@ export class Builder {
     }
 
     async serve(options: Partial<ServeOptions> = {}) {
-        const profile = this.#getProfile();
+        const builderOptions = this.#options;
 
         if (options.port !== undefined) {
-            profile.serve.port = options.port;
+            builderOptions.serve.port = options.port;
         }
         if (options.watch !== undefined) {
-            profile.serve.watch = options.watch;
+            builderOptions.serve.watch = options.watch;
         }
 
-        const context = await preprocess(profile);
+        const context = await preprocess(builderOptions);
 
-        const { host, port } = await context.serve({ port: profile.serve.port, servedir: profile.outdir, });
+        const { host, port } = await context.serve({ port: builderOptions.serve.port, servedir: builderOptions.outdir, });
 
         const origin = host === "0.0.0.0" ? "localhost" : host;
 
         console.log(`Serving on http://${origin}:${port}`);
 
-        const watcher = watch(profile.serve.watch);
+        const watcher = watch(builderOptions.serve.watch);
         console.log("Watching...");
 
 
@@ -86,11 +67,6 @@ export class Builder {
         }
 
         await context.dispose();
-    }
-
-
-    #getProfile() {
-        return this.#profiles[this.#profileName];
     }
 }
 
@@ -106,8 +82,8 @@ export function watch(targets: (string | { path: string, recursive: boolean; })[
     return merge(...watchers);
 }
 
-export async function preprocess(profile: BuilderProfile) {
-    const indexFile = await Deno.readTextFile(profile.documentFilePath);
+export async function preprocess(options: CompleteBuilderOptions) {
+    const indexFile = await Deno.readTextFile(options.documentFilePath);
     const documentRoot = parseDOM(indexFile);
 
     if (documentRoot === null) {
@@ -123,38 +99,38 @@ export async function preprocess(profile: BuilderProfile) {
 
     for (const source of scriptSources) {
         const ext = path.extname(source);
-        const base = path.common([path.normalize(profile.outbase), source]);
+        const base = path.common([path.normalize(options.outbase), source]);
         const src = source.substring(base.length, source.length - ext.length);
         const scriptElem = parseDOM(`<script type="module" src="${src}.js"></script>`);
         document.appendChild(scriptElem);
     }
 
-    if (!(await fs.exists(profile.outdir))) {
-        await Deno.mkdir(profile.outdir);
+    if (!(await fs.exists(options.outdir))) {
+        await Deno.mkdir(options.outdir);
     }
 
-    for (const r of profile.staticResources) {
-        await fs.copy(r, profile.outdir, { overwrite: true });
+    for (const r of options.staticResources) {
+        await fs.copy(r, options.outdir, { overwrite: true });
     }
 
-    const outIndexFilePath = path.join(profile.outdir, path.basename(profile.documentFilePath));
+    const outIndexFilePath = path.join(options.outdir, path.basename(options.documentFilePath));
     const outIndexFile = await Deno.create(outIndexFilePath);
     await outIndexFile.write(new TextEncoder().encode(documentRoot.toString()));
 
     const esbuildOptions: esbuild.BuildOptions = {
-        ...profile.esbuildOptions,
+        ...options.esbuildOptions,
         plugins: [
-            ...profile.esbuildPlugins,
+            ...options.esbuildPlugins,
             ...denoPlugins({
-                configPath: profile.denoConfigPath !== undefined ? path.resolve(profile.denoConfigPath) : undefined,
-                importMapURL: profile.importMapURL,
-                nodeModulesDir: profile.nodeModulesDir,
-                loader: profile.denoPluginLoader
+                configPath: options.denoConfigPath !== undefined ? path.resolve(options.denoConfigPath) : undefined,
+                importMapURL: options.importMapURL,
+                nodeModulesDir: options.nodeModulesDir,
+                loader: options.denoPluginLoader
             })
         ],
         entryPoints: scriptSources,
-        outdir: profile.outdir,
-        outbase: profile.outbase,
+        outdir: options.outdir,
+        outbase: options.outbase,
         bundle: true,
         format: "esm",
         platform: "browser"

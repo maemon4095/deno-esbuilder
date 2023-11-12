@@ -1,10 +1,6 @@
-import { Optional } from "https://raw.githubusercontent.com/maemon4095/ts_components/main/utilities.ts";
 import esbuild from "./deps/esbuild.ts";
-export type BuilderOptions = Optional<BuilderProfile> & {
-    profileName: ProfileName;
-} & { [p in ProfileName]?: Optional<BuilderProfile>; };
-
-export type BuilderProfile = {
+export type BuilderOptions = Partial<CompleteBuilderOptions>;
+export type CompleteBuilderOptions = {
     esbuildPlugins: esbuild.Plugin[];
     outdir: string,
     outbase: string;
@@ -24,5 +20,3 @@ export type ServeOptions = {
     port: number;
     watch: (string | { path: string, recursive: boolean; })[];
 };
-
-export type ProfileName = "release" | "dev";

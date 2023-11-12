@@ -1,2 +1,2 @@
 export { Builder } from "./builder.ts";
-export type { BuilderOptions, BuilderProfile, ServeOptions, ProfileName } from "./options.ts";
+export type { BuilderOptions, ServeOptions } from "./options.ts";
