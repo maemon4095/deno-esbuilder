@@ -134,7 +134,7 @@ export async function preprocess(profile: BuilderProfile) {
     }
 
     const outIndexFilePath = path.join(profile.outdir, path.basename(profile.documentFilePath));
-    const outIndexFile = await Deno.create(path.join(profile.outdir, outIndexFilePath));
+    const outIndexFile = await Deno.create(outIndexFilePath);
     await outIndexFile.write(new TextEncoder().encode(documentRoot.toString()));
 
     const esbuildOptions: esbuild.BuildOptions = {
