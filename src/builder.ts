@@ -125,7 +125,9 @@ export async function preprocess(profile: BuilderProfile) {
 
     document.appendChild(scriptElem);
 
-    await Deno.mkdir(profile.outdir);
+    if (!(await fs.exists(profile.outdir))) {
+        await Deno.mkdir(profile.outdir);
+    }
 
     for (const r of profile.staticResources) {
         await fs.copy(r, profile.outdir, { overwrite: true });
