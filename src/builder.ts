@@ -65,7 +65,11 @@ export class Builder {
 
         for await (const e of watcher) {
             console.log(`File Update: (${e.kind}) ${e.paths}.`);
-            await context.rebuild();
+            try {
+                await context.rebuild();
+            } catch (e) {
+                console.error(e);
+            }
         }
 
         await context.dispose();
