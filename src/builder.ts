@@ -136,11 +136,12 @@ function preprocessDocument(options: CompleteBuilderOptions, documentRoot: HTMLE
 
     const scriptElems = documentRoot.querySelectorAll(`script[type="module"][src]`);
     for (const e of scriptElems) {
-        const source = e.getAttribute("src")!;
-        if (!matchTargetFilter(options.bundleTargets, source)) {
+        const rawsource = e.getAttribute("src")!;
+        if (!matchTargetFilter(options.bundleTargets, rawsource)) {
             continue;
         }
 
+        const source = path.normalize(rawsource);
         const ext = path.extname(path.normalize(source));
         const base = path.common([path.normalize(options.outbase), source]);
         const src = source.substring(base.length, source.length - ext.length);
