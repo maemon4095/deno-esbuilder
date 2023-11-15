@@ -8,10 +8,13 @@ export function postCssPlugin(plugins: postcss.AcceptedPlugin[]): esbuild.Plugin
     return {
         name,
         setup(build) {
-            build.onResolve({ filter: /.*\.css/ }, args => ({
-                path: path.join(args.resolveDir, args.path),
-                namespace: name,
-            }));
+            build.onResolve({ filter: /.*\.css/ }, args => {
+                console.log("[postCssPlugin]", args);
+                return {
+                    path: path.join(args.resolveDir, args.path),
+                    namespace: name,
+                };
+            });
 
             build.onLoad({ filter: /.*/, namespace: name }, async args => {
                 const cssdata = await Deno.readFile(args.path);
