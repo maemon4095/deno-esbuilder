@@ -163,21 +163,22 @@ function preprocessDocument(options: CompleteBuilderOptions, documentRoot: HTMLE
     }
 
     const document = documentRoot.getElementsByTagName("html")[0];
+    const head = document.getElementsByTagName("head").at(0) ?? document.appendChild(parseDOM("<head></head>"));
 
     for (const source of scriptSources) {
         const ext = path.extname(source);
         const base = path.common([path.normalize(options.outbase), source]);
         const src = source.substring(base.length, source.length - ext.length);
         const scriptElem = parseDOM(`<script type="module" src="${src}.js"></script>`);
-        document.appendChild(scriptElem);
+        head.appendChild(scriptElem);
     }
 
     for (const { href, rel } of links) {
         const base = path.common([path.normalize(options.outbase), href]);
         const src = href.substring(base.length);
         const relAttr = rel === undefined ? "" : `rel="${rel}"`;
-        const linkElem = parseDOM(`<link ${relAttr} href="${src}"></script>`);
-        document.appendChild(linkElem);
+        const linkElem = parseDOM(`<link ${relAttr} href="${src}"/>`);
+        head.appendChild(linkElem);
     }
 
     return entryPoints;
