@@ -9,9 +9,15 @@ export function postCssPlugin(plugins: postcss.AcceptedPlugin[]): esbuild.Plugin
         name,
         setup(build) {
             build.onResolve({ filter: /.*\.css/ }, args => {
-                console.log("[postCssPlugin]", args);
+                let dir;
+                if (args.importer) {
+                    dir = path.dirname(args.importer);
+                } else {
+                    dir = args.resolveDir;
+                }
+
                 return {
-                    path: path.join(args.resolveDir, args.path),
+                    path: path.join(dir, args.path),
                     namespace: name,
                 };
             });
