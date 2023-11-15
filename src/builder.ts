@@ -134,52 +134,36 @@ export async function preprocess(options: CompleteBuilderOptions) {
 function preprocessDocument(options: CompleteBuilderOptions, documentRoot: HTMLElement): string[] {
     const entryPoints: string[] = [];
 
-    const scriptSources: string[] = [];
     const scriptElems = documentRoot.querySelectorAll(`script[type="module"][src]`);
-
     for (const e of scriptElems) {
         const source = e.getAttribute("src")!;
         if (!matchTargetFilter(options.bundleTargets, source)) {
             continue;
         }
-        e.remove();
+
+        const ext = path.extname(path.normalize(source));
+        const base = path.common([path.normalize(options.outbase), source]);
+        const src = source.substring(base.length, source.length - ext.length);
+
+        e.setAttribute("src", `${src}.js`);
+
         entryPoints.push(source);
-        scriptSources.push(path.normalize(source));
     }
 
     const linkElems = documentRoot.querySelectorAll(`link[href]`);
-    const links: { href: string, rel: string | undefined; }[] = [];
-
     for (const e of linkElems) {
-        const hrefAttr = e.getAttribute("href")!;
-        const rel = e.getAttribute("rel");
-        if (!matchTargetFilter(options.bundleTargets, hrefAttr)) {
+        const rawhref = e.getAttribute("href")!;
+        if (!matchTargetFilter(options.bundleTargets, rawhref)) {
             continue;
         }
-        e.remove();
-        entryPoints.push(hrefAttr);
-        const href = path.normalize(hrefAttr);
-        links.push({ href, rel });
-    }
-
-    const document = documentRoot.getElementsByTagName("html")[0];
-    const head = document.getElementsByTagName("head").at(0) ?? document.appendChild(parseDOM("<head></head>"));
-
-    for (const source of scriptSources) {
-        const ext = path.extname(source);
-        const base = path.common([path.normalize(options.outbase), source]);
-        const src = source.substring(base.length, source.length - ext.length);
-        const scriptElem = parseDOM(`<script type="module" src="${src}.js"></script>`);
-        head.appendChild(scriptElem);
-    }
-
-    for (const { href, rel } of links) {
+        const href = path.normalize(rawhref);
         const base = path.common([path.normalize(options.outbase), href]);
         const src = href.substring(base.length);
-        const relAttr = rel === undefined ? "" : `rel="${rel}"`;
-        const linkElem = parseDOM(`<link ${relAttr} href="${src}"/>`);
-        head.appendChild(linkElem);
+        e.setAttribute("href", src);
+
+        entryPoints.push(rawhref);
     }
+
 
     return entryPoints;
 }
