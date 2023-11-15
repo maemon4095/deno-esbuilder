@@ -1,5 +1,6 @@
 import esbuild from "https://deno.land/x/esbuild@v0.19.4/mod.js";
 import postcss from "npm:postcss";
+import { path } from "../src/deps/std.ts";
 
 export function postCssPlugin(plugins: postcss.AcceptedPlugin[]): esbuild.Plugin {
     const name = "postCssPlugin";
@@ -8,7 +9,7 @@ export function postCssPlugin(plugins: postcss.AcceptedPlugin[]): esbuild.Plugin
         name,
         setup(build) {
             build.onResolve({ filter: /.*\.css/ }, args => ({
-                path: args.path,
+                path: path.join(args.resolveDir, args.path),
                 namespace: name,
             }));
 
