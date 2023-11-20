@@ -1,3 +1,4 @@
+
 export function merge<T extends {} | null>(...iters: AsyncIterable<T>[]): AsyncIterable<T> {
     const iterators = iters.map(i => i[Symbol.asyncIterator]());
     const channel = new AsyncChannel<T>();
@@ -21,7 +22,7 @@ export function merge<T extends {} | null>(...iters: AsyncIterable<T>[]): AsyncI
 
 
 function eventify<T>(iter: AsyncIterator<T>, callback: (v: T) => void, endCallback: () => void) {
-    new Promise(async r => {
+    return new Promise<void>(async resolve => {
         while (true) {
             const { done, value } = await iter.next();
             if (done) {
@@ -31,6 +32,7 @@ function eventify<T>(iter: AsyncIterator<T>, callback: (v: T) => void, endCallba
         }
 
         endCallback();
+        resolve();
     });
 }
 
@@ -104,31 +106,41 @@ export class AsyncChannel<T extends {} | null> implements AsyncIterable<T> {
 
 
 export class Queue<T> {
-    #head: null | Node<T>;
+    #pair: null | { head: Node<T>, tail: Node<T>; };
     constructor() {
-        this.#head = null;
+        this.#pair = null;
     }
 
     get isEmpty() {
-        return this.#head === null;
+        return this.#pair === null;
     }
 
     enqueue(value: T) {
-        const node = { value, next: this.#head };
-        this.#head = node;
+        const node: Node<T> = {
+            value: value,
+            next: null
+        };
+        if (this.#pair === null) {
+            this.#pair = { head: node, tail: node };
+        } else {
+            this.#pair.tail.next = node;
+            this.#pair.tail = node;
+        }
     }
 
     dequeue(): T | null {
-        const head = this.#head;
-        if (head === null) {
+        const pair = this.#pair;
+        if (pair === null) {
             return null;
         }
-
-        const value = head.value;
+        const head = pair.head;
         const next = head.next;
-        this.#head = next;
-
-        return value;
+        if (next === null) {
+            this.#pair = null;
+        } else {
+            pair.head = next;
+        }
+        return head.value;
     }
 }
 
