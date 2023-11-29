@@ -3,6 +3,7 @@
     "deno.lint": false,
     "deno.unstable": false,
     "deno.disablePaths": [
-        "tests/builder/**"
+        "tests/builder/**",
+        "examples/**"
     ],
 }

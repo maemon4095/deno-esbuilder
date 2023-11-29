@@ -1,4 +1,4 @@
-import esbuild from "https://deno.land/x/esbuild@v0.19.4/mod.js";
+import esbuild from "https://deno.land/x/esbuild@v0.19.6/mod.js";
 import postcss from "npm:postcss";
 import { path } from "../src/deps/std.ts";
 

@@ -1,11 +1,27 @@
 import esbuild from "./deps/esbuild.ts";
-export type BuilderOptions = Partial<CompleteBuilderOptions>;
+export type BuilderOptions = {
+    esbuildPlugins?: esbuild.Plugin[];
+    outdir?: string,
+    outbase?: string;
+    documentFilePath?: string;
+    serve?: ServeOptions;
+    esbuildOptions?: esbuild.BuildOptions,
+    dropLabels?: string[];
+    minifySyntax?: boolean;
+    staticResources?: string[];
+    denoConfigPath?: string;
+    importMapURL?: string;
+    nodeModulesDir?: boolean;
+    bundleTargets?: (RegExp | string)[];
+    denoPluginLoader?: "native" | "portable";
+};
+
 export type CompleteBuilderOptions = {
     esbuildPlugins: esbuild.Plugin[];
     outdir: string,
     outbase: string;
     documentFilePath: string;
-    serve: ServeOptions;
+    serve: CompleteServeOptions;
     esbuildOptions?: esbuild.BuildOptions,
     dropLabels: string[];
     minifySyntax: boolean;
@@ -17,7 +33,9 @@ export type CompleteBuilderOptions = {
     denoPluginLoader?: "native" | "portable";
 };
 
-export type ServeOptions = {
+export type CompleteServeOptions = {
     port: number;
     watch: (string | { path: string, recursive: boolean; })[];
 };
+
+export type ServeOptions = Partial<CompleteServeOptions>;
