@@ -19,7 +19,10 @@ const defaultOptions: CompleteBuilderOptions = {
     staticResources: [],
     dropLabels: [],
     minifySyntax: false,
-    bundleTargets: [/.*\.(jsx|tsx|js|ts)/]
+    bundleTargets: [/.*\.(jsx|tsx|js|ts)/],
+    treeShaking: false,
+    sourceMap: "inline",
+    sourcesContent: true,
 };
 
 export class Builder {
@@ -120,6 +123,10 @@ export async function preprocess(options: CompleteBuilderOptions) {
         entryPoints,
         outdir: options.outdir,
         outbase: options.outbase,
+        treeShaking: options.treeShaking,
+        sourcesContent: options.sourcesContent,
+        sourcemap: options.sourceMap,
+        sourceRoot: options.sourceRoot,
         bundle: true,
         format: "esm",
         platform: "browser",

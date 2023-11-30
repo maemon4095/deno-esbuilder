@@ -6,6 +6,10 @@ export type BuilderOptions = {
     documentFilePath?: string;
     serve?: ServeOptions;
     esbuildOptions?: esbuild.BuildOptions,
+    treeShaking?: esbuild.BuildOptions["treeShaking"],
+    sourcesContent?: esbuild.BuildOptions["sourcesContent"],
+    sourceMap?: esbuild.BuildOptions["sourcemap"],
+    sourceRoot?: esbuild.BuildOptions["sourceRoot"],
     dropLabels?: string[];
     minifySyntax?: boolean;
     staticResources?: string[];
@@ -23,6 +27,10 @@ export type CompleteBuilderOptions = {
     documentFilePath: string;
     serve: CompleteServeOptions;
     esbuildOptions?: esbuild.BuildOptions,
+    treeShaking: esbuild.BuildOptions["treeShaking"],
+    sourcesContent?: esbuild.BuildOptions["sourcesContent"],
+    sourceMap: esbuild.BuildOptions["sourcemap"],
+    sourceRoot?: esbuild.BuildOptions["sourceRoot"],
     dropLabels: string[];
     minifySyntax: boolean;
     staticResources: string[];
