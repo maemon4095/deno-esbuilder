@@ -21,7 +21,7 @@ const defaultOptions: CompleteBuilderOptions = {
     minifySyntax: false,
     bundleTargets: [/.*\.(jsx|tsx|js|ts)/],
     treeShaking: false,
-    sourceMap: "inline",
+    sourceMap: true,
     sourcesContent: true,
 };
 
