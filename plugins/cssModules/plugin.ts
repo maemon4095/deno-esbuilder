@@ -7,7 +7,7 @@ import postcss from "npm:postcss";
 type InferArgs<T extends (arg: any) => any> = T extends ((arg: infer X) => any) ? X : never;
 
 export type CssModulesOptions = InferArgs<typeof cssModules>;
-export function cssModulePlugin(options: Omit<CssModulesOptions, "getJSON">): esbuild.Plugin {
+export default function cssModulePlugin(options: Omit<CssModulesOptions, "getJSON">): esbuild.Plugin {
   const resultStore: {
     [file: string]: {
       css?: string,
