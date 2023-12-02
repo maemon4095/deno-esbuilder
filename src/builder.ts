@@ -19,7 +19,7 @@ const defaultOptions: CompleteBuilderOptions = {
     staticResources: [],
     dropLabels: [],
     minifySyntax: false,
-    bundleTargets: [/.*\.(jsx|tsx|js|ts)/],
+    bundleTargets: [/.*\.(jsx|tsx|js|ts)$/],
     treeShaking: false,
     sourceMap: true,
     sourcesContent: true,
