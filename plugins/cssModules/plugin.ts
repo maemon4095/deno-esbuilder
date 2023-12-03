@@ -1,13 +1,13 @@
 import cssModules from "npm:postcss-modules";
-import * as path from "https://deno.land/std@0.207.0/path/mod.ts";
-import esbuild from "https://raw.githubusercontent.com/maemon4095/tauri-deno-builder/main/src/deps/esbuild.ts";
+import { esbuild, path } from "../util/deps.ts";
+import { ImportMap, createResolverFromImportMap, defaultResolve } from "../util/resolver.ts";
 import postcss from "npm:postcss";
 
 // deno-lint-ignore no-explicit-any
 type InferArgs<T extends (arg: any) => any> = T extends ((arg: infer X) => any) ? X : never;
 
 export type CssModulesOptions = InferArgs<typeof cssModules>;
-export default function cssModulePlugin(options: Omit<CssModulesOptions, "getJSON">): esbuild.Plugin {
+export default function cssModulePlugin(options?: CssModulesOptions & { importMap?: string | ImportMap; }): esbuild.Plugin {
   const resultStore: {
     [file: string]: {
       css?: string,
@@ -15,13 +15,17 @@ export default function cssModulePlugin(options: Omit<CssModulesOptions, "getJSO
     };
   } = {};
   const name = cssModulePlugin.name;
+  const { getJSON: getJSONOption, ...otherOptions } = options ?? {};
 
   const plugin = cssModules({
-    ...options,
-    getJSON(cssFileName, json) {
+    ...otherOptions,
+    getJSON(cssFileName, json, outputFilename) {
       resultStore[cssFileName] = { map: json };
+      if (getJSONOption) getJSONOption(cssFileName, json, outputFilename);
     }
   });
+
+  const importMapResolver = createResolverFromImportMap(otherOptions.importMap ?? {});
 
   const part_gen = `${name}-gen`;
   const part_emit = `${name}-emit-css`;
@@ -37,14 +41,8 @@ export default function cssModulePlugin(options: Omit<CssModulesOptions, "getJSO
           };
         }
 
-        let dir;
-        if (args.importer) {
-          dir = path.dirname(args.importer);
-        } else {
-          dir = args.resolveDir;
-        }
         return {
-          path: path.join(dir, args.path),
+          path: importMapResolver(args.path) ?? defaultResolve(args),
           namespace: part_gen,
         };
       });

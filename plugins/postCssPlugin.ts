@@ -1,23 +1,23 @@
-import esbuild from "https://deno.land/x/esbuild@v0.19.6/mod.js";
 import postcss from "npm:postcss";
-import { path } from "../src/deps/std.ts";
+import { esbuild } from "./util/deps.ts";
+import { ImportMap, createResolverFromImportMap, defaultResolve } from "./util/resolver.ts";
 
-export function postCssPlugin(plugins: postcss.AcceptedPlugin[]): esbuild.Plugin {
+export type Options = {
+    plugins: postcss.AcceptedPlugin[];
+    importMap?: string | ImportMap;
+};
+export function postCssPlugin(options: Options): esbuild.Plugin {
     const name = "postCssPlugin";
+    const { plugins, importMap: importMapOrPath } = options;
+
+    const importMapResolver = createResolverFromImportMap(importMapOrPath ?? {});
 
     return {
         name,
         setup(build) {
             build.onResolve({ filter: /.*\.css/ }, args => {
-                let dir;
-                if (args.importer) {
-                    dir = path.dirname(args.importer);
-                } else {
-                    dir = args.resolveDir;
-                }
-
                 return {
-                    path: path.join(dir, args.path),
+                    path: importMapResolver(args.path) ?? defaultResolve(args),
                     namespace: name,
                 };
             });
