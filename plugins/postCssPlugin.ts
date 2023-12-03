@@ -3,7 +3,7 @@ import { esbuild } from "./util/deps.ts";
 import { ImportMap, createResolverFromImportMap, defaultResolve } from "./util/resolver.ts";
 
 export type Options = {
-    plugins: postcss.AcceptedPlugin[];
+    plugins?: postcss.AcceptedPlugin[];
     importMap?: string | ImportMap;
 };
 export function postCssPlugin(options: Options): esbuild.Plugin {
