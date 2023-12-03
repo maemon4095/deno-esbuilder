@@ -19,7 +19,7 @@ export function createResolverFromImportMap(importMapOrPath: string | ImportMap)
 
     return (p: string) => {
         for (const [pref, rep] of Object.entries(importMap)) {
-            if (!rep.startsWith(pref)) continue;
+            if (!p.startsWith(pref)) continue;
 
             return path.join(importMapPrefix, rep, p.slice(pref.length));
         }
