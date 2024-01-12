@@ -97,7 +97,9 @@ export function watch(targets: (string | { path: string, recursive: boolean; })[
 export async function preprocess(options: CompleteBuilderOptions) {
     let entryPoints;
 
-    if ("documentFilePath" in options) {
+    if ("entryPoints" in options) {
+        entryPoints = options.entryPoints;
+    } else {
         const indexFile = await Deno.readTextFile(options.documentFilePath);
         const documentRoot = parseDOM(indexFile);
 
@@ -106,8 +108,7 @@ export async function preprocess(options: CompleteBuilderOptions) {
         const outIndexFilePath = path.join(options.outdir, path.basename(options.documentFilePath));
         const outIndexFile = await Deno.create(outIndexFilePath);
         await outIndexFile.write(new TextEncoder().encode(documentRoot.toString()));
-    } else {
-        entryPoints = options.entryPoints;
+
     }
 
     if (!(await fs.exists(options.outdir))) {
