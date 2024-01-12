@@ -6,7 +6,7 @@ export type BuilderOptionsWithDocument = {
 } & BuilderCommonOptions;
 
 export type BuilderOptionsWithEntryPoints = {
-    entryPoints: [string, ...string[]],
+    entryPoints: string[],
 } & BuilderCommonOptions;
 
 export type BuilderCommonOptions = {
