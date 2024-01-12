@@ -30,7 +30,6 @@ export class Builder {
     #options: CompleteBuilderOptions;
     constructor(options: BuilderOptions) {
         const t = coalesce(options, defaultOptions);
-        console.debug("builder initialize with:", t);
         this.#options = t as any;
     }
 
@@ -95,6 +94,10 @@ export function watch(targets: (string | { path: string, recursive: boolean; })[
 }
 
 export async function preprocess(options: CompleteBuilderOptions) {
+    if (!(await fs.exists(options.outdir))) {
+        await Deno.mkdir(options.outdir);
+    }
+
     let entryPoints;
 
     if ("entryPoints" in options) {
@@ -108,10 +111,6 @@ export async function preprocess(options: CompleteBuilderOptions) {
         const outIndexFilePath = path.join(options.outdir, path.basename(options.documentFilePath));
         const outIndexFile = await Deno.create(outIndexFilePath);
         await outIndexFile.write(new TextEncoder().encode(documentRoot.toString()));
-    }
-
-    if (!(await fs.exists(options.outdir))) {
-        await Deno.mkdir(options.outdir);
     }
 
     for (const r of options.staticResources) {
