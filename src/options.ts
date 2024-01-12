@@ -1,9 +1,19 @@
 import esbuild from "./deps/esbuild.ts";
-export type BuilderOptions = {
+export type BuilderOptions = BuilderCommonOptions | BuilderOptionsWithDocument | BuilderOptionsWithEntryPoints;
+
+export type BuilderOptionsWithDocument = {
+    documentFilePath: string;
+} & BuilderCommonOptions;
+
+export type BuilderOptionsWithEntryPoints = {
+    entryPoints: [string, ...string[]],
+} & BuilderCommonOptions;
+
+
+export type BuilderCommonOptions = {
     esbuildPlugins?: esbuild.Plugin[];
     outdir?: string,
     outbase?: string;
-    documentFilePath?: string;
     serve?: ServeOptions;
     esbuildOptions?: esbuild.BuildOptions,
     treeShaking?: esbuild.BuildOptions["treeShaking"],
@@ -12,6 +22,8 @@ export type BuilderOptions = {
     sourceRoot?: esbuild.BuildOptions["sourceRoot"],
     dropLabels?: string[];
     minifySyntax?: boolean;
+    minifyIdentifiers?: boolean,
+    minifyWhitespace?: boolean,
     staticResources?: string[];
     denoConfigPath?: string;
     importMapURL?: string;
@@ -20,11 +32,10 @@ export type BuilderOptions = {
     denoPluginLoader?: "native" | "portable";
 };
 
-export type CompleteBuilderOptions = {
+export type CompleteBuilderCommonOptions = {
     esbuildPlugins: esbuild.Plugin[];
     outdir: string,
     outbase: string;
-    documentFilePath: string;
     serve: CompleteServeOptions;
     esbuildOptions?: esbuild.BuildOptions,
     treeShaking: esbuild.BuildOptions["treeShaking"],
@@ -33,6 +44,8 @@ export type CompleteBuilderOptions = {
     sourceRoot?: esbuild.BuildOptions["sourceRoot"],
     dropLabels: string[];
     minifySyntax: boolean;
+    minifyIdentifiers: boolean,
+    minifyWhitespace: boolean,
     staticResources: string[];
     denoConfigPath?: string;
     importMapURL?: string;
@@ -40,6 +53,16 @@ export type CompleteBuilderOptions = {
     bundleTargets: (RegExp | string)[];
     denoPluginLoader?: "native" | "portable";
 };
+
+export type CompleteBuilderOptions = CompleteBuilderOptionsWithDocument | CompleteBuilderOptionsWithEntryPoints;
+
+export type CompleteBuilderOptionsWithDocument = {
+    documentFilePath: string;
+} & CompleteBuilderCommonOptions;
+
+export type CompleteBuilderOptionsWithEntryPoints = {
+    entryPoints: [string, ...string[]],
+} & CompleteBuilderCommonOptions;
 
 export type CompleteServeOptions = {
     port: number;

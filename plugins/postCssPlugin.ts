@@ -6,7 +6,7 @@ export type Options = {
     plugins?: postcss.AcceptedPlugin[];
     importMap?: string | ImportMap;
 };
-export function postCssPlugin(options: Options): esbuild.Plugin {
+export default function postCssPlugin(options: Options): esbuild.Plugin {
     const name = "postCssPlugin";
     const { plugins, importMap: importMapOrPath } = options;
 

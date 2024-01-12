@@ -1,4 +1,4 @@
-import { BuilderOptions, CompleteBuilderOptions, ServeOptions } from "./options.ts";
+import { BuilderOptions, CompleteBuilderOptions, CompleteBuilderOptionsWithDocument, ServeOptions } from "./options.ts";
 import { denoPlugins } from "./deps/esbuild_deno_loader.ts";
 import { coalesce } from "./deps/coalesce.ts";
 import esbuild from "./deps/esbuild.ts";
@@ -6,7 +6,7 @@ import { HTMLElement, parse as parseDOM } from "npm:node-html-parser";
 import { fs, path } from "./deps/std.ts";
 import { merge } from "./asyncIteratorExtensions.ts";
 
-const defaultOptions: CompleteBuilderOptions = {
+const defaultOptions: CompleteBuilderOptionsWithDocument = {
     outdir: "./dist",
     outbase: "src",
     esbuildPlugins: [],
@@ -18,7 +18,9 @@ const defaultOptions: CompleteBuilderOptions = {
     esbuildOptions: undefined,
     staticResources: [],
     dropLabels: [],
-    minifySyntax: false,
+    minifySyntax: true,
+    minifyIdentifiers: true,
+    minifyWhitespace: true,
     bundleTargets: [/.*\.(jsx|tsx|js|ts)$/],
     treeShaking: false,
     sourceMap: true,
@@ -93,10 +95,20 @@ export function watch(targets: (string | { path: string, recursive: boolean; })[
 }
 
 export async function preprocess(options: CompleteBuilderOptions) {
-    const indexFile = await Deno.readTextFile(options.documentFilePath);
-    const documentRoot = parseDOM(indexFile);
+    let entryPoints;
 
-    const entryPoints = preprocessDocument(options, documentRoot);
+    if ("documentFilePath" in options) {
+        const indexFile = await Deno.readTextFile(options.documentFilePath);
+        const documentRoot = parseDOM(indexFile);
+
+        entryPoints = preprocessDocument(options, documentRoot);
+
+        const outIndexFilePath = path.join(options.outdir, path.basename(options.documentFilePath));
+        const outIndexFile = await Deno.create(outIndexFilePath);
+        await outIndexFile.write(new TextEncoder().encode(documentRoot.toString()));
+    } else {
+        entryPoints = options.entryPoints;
+    }
 
     if (!(await fs.exists(options.outdir))) {
         await Deno.mkdir(options.outdir);
@@ -105,10 +117,6 @@ export async function preprocess(options: CompleteBuilderOptions) {
     for (const r of options.staticResources) {
         await fs.copy(r, options.outdir, { overwrite: true });
     }
-
-    const outIndexFilePath = path.join(options.outdir, path.basename(options.documentFilePath));
-    const outIndexFile = await Deno.create(outIndexFilePath);
-    await outIndexFile.write(new TextEncoder().encode(documentRoot.toString()));
 
     const esbuildOptions: esbuild.BuildOptions = {
         plugins: [
@@ -138,7 +146,7 @@ export async function preprocess(options: CompleteBuilderOptions) {
 }
 
 
-function preprocessDocument(options: CompleteBuilderOptions, documentRoot: HTMLElement): string[] {
+function preprocessDocument(options: CompleteBuilderOptionsWithDocument, documentRoot: HTMLElement): string[] {
     const entryPoints: string[] = [];
 
     const scriptElems = documentRoot.querySelectorAll(`script[type="module"][src]`);
