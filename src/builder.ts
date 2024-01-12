@@ -108,7 +108,6 @@ export async function preprocess(options: CompleteBuilderOptions) {
         const outIndexFilePath = path.join(options.outdir, path.basename(options.documentFilePath));
         const outIndexFile = await Deno.create(outIndexFilePath);
         await outIndexFile.write(new TextEncoder().encode(documentRoot.toString()));
-
     }
 
     if (!(await fs.exists(options.outdir))) {
@@ -132,10 +131,16 @@ export async function preprocess(options: CompleteBuilderOptions) {
         entryPoints,
         outdir: options.outdir,
         outbase: options.outbase,
-        treeShaking: options.treeShaking,
+
         sourcesContent: options.sourcesContent,
         sourcemap: options.sourceMap,
         sourceRoot: options.sourceRoot,
+
+        treeShaking: options.treeShaking,
+        minifySyntax: options.minifySyntax,
+        minifyIdentifiers: options.minifyIdentifiers,
+        minifyWhitespace: options.minifyWhitespace,
+
         bundle: true,
         format: "esm",
         platform: "browser",
