@@ -1,4 +1,4 @@
-import { BuilderOptions, CompleteBuilderOptions, CompleteBuilderOptionsWithDocument, ServeOptions } from "./options.ts";
+import { BuilderOptions, CompleteBuilderCommonOptions, CompleteBuilderOptions, CompleteBuilderOptionsWithDocument, CompleteServeOptions, ServeOptions } from "./options.ts";
 import { denoPlugins } from "./deps/esbuild_deno_loader.ts";
 import { coalesce } from "./deps/coalesce.ts";
 import esbuild from "./deps/esbuild.ts";
@@ -6,11 +6,10 @@ import { HTMLElement, parse as parseDOM } from "npm:node-html-parser";
 import { fs, path } from "./deps/std.ts";
 import { merge } from "./asyncIteratorExtensions.ts";
 
-const defaultOptions: CompleteBuilderOptionsWithDocument = {
+const defaultOptions: CompleteBuilderCommonOptions = {
     outdir: "./dist",
     outbase: "src",
     esbuildPlugins: [],
-    documentFilePath: "./index.html",
     serve: {
         port: 1415,
         watch: ["src"]
@@ -29,9 +28,10 @@ const defaultOptions: CompleteBuilderOptionsWithDocument = {
 
 export class Builder {
     #options: CompleteBuilderOptions;
-
     constructor(options: BuilderOptions) {
-        this.#options = coalesce(options, defaultOptions);
+        const t = coalesce(options, defaultOptions);
+        console.debug("builder initialize with:", t);
+        this.#options = t as any;
     }
 
     async build() {

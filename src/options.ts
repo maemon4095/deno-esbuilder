@@ -1,5 +1,5 @@
 import esbuild from "./deps/esbuild.ts";
-export type BuilderOptions = BuilderCommonOptions | BuilderOptionsWithDocument | BuilderOptionsWithEntryPoints;
+export type BuilderOptions = BuilderOptionsWithDocument | BuilderOptionsWithEntryPoints;
 
 export type BuilderOptionsWithDocument = {
     documentFilePath: string;
@@ -8,7 +8,6 @@ export type BuilderOptionsWithDocument = {
 export type BuilderOptionsWithEntryPoints = {
     entryPoints: [string, ...string[]],
 } & BuilderCommonOptions;
-
 
 export type BuilderCommonOptions = {
     esbuildPlugins?: esbuild.Plugin[];
