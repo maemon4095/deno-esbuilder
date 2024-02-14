@@ -1,4 +1,4 @@
-# Tauri Deno Builder
+# Deno ESBuilder
 
 # TODO
 - build without bundle
