@@ -10,7 +10,10 @@ export type BuilderOptionsWithEntryPoints = {
 } & BuilderCommonOptions;
 
 export type BuilderCommonOptions = {
+    /** esbuild plugins inserted before DenoPlugin */
     esbuildPlugins?: esbuild.Plugin[];
+    /** esbuild plugins inserted after DenoPlugin */
+    esbuildPluginsLater?: esbuild.Plugin[];
     outdir?: string,
     outbase?: string;
     serve?: ServeOptions;
@@ -33,6 +36,7 @@ export type BuilderCommonOptions = {
 
 export type CompleteBuilderCommonOptions = {
     esbuildPlugins: esbuild.Plugin[];
+    esbuildPluginsLater: esbuild.Plugin[];
     outdir: string,
     outbase: string;
     serve: CompleteServeOptions;

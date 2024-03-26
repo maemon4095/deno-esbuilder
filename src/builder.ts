@@ -10,6 +10,7 @@ const defaultOptions: CompleteBuilderCommonOptions = {
     outdir: "./dist",
     outbase: "src",
     esbuildPlugins: [],
+    esbuildPluginsLater: [],
     serve: {
         port: 1415,
         watch: ["src"]
@@ -125,7 +126,8 @@ export async function preprocess(options: CompleteBuilderOptions) {
                 importMapURL: options.importMapURL,
                 nodeModulesDir: options.nodeModulesDir,
                 loader: options.denoPluginLoader
-            })
+            }),
+            ...options.esbuildPluginsLater
         ],
         entryPoints,
         outdir: options.outdir,
