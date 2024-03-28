@@ -67,9 +67,23 @@ export class Builder {
         const watcher = watch(builderOptions.serve.watch);
         console.log("Watching...");
 
+        const isStaticResource = (p: string) => {
+            const normalized = path.normalize(p);
+            for (const r of builderOptions.staticResources) {
+                if (normalized === path.normalize(r)) {
+                    return true;
+                }
+            }
+            return false;
+        };
 
         for await (const e of watcher) {
             console.log(`File Update: (${e.kind}) ${e.paths}.`);
+            for (const path of e.paths) {
+                if (isStaticResource(path)) {
+                    await fs.copy(path, builderOptions.outdir, { overwrite: true });
+                }
+            }
             try {
                 await context.rebuild();
             } catch (e) {
