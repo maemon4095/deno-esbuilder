@@ -1,5 +1,5 @@
 import cssModules from "npm:postcss-modules";
-import { esbuild, path } from "../util/deps.ts";
+import { esbuild, posixPath } from "../util/deps.ts";
 import { ImportMap, createResolverFromImportMap, defaultResolve } from "../util/resolver.ts";
 import postcss from "npm:postcss";
 

@@ -26,20 +26,18 @@ export type BuilderCommonOptions = {
     minifySyntax?: boolean;
     minifyIdentifiers?: boolean,
     minifyWhitespace?: boolean,
-    staticResources?: string[];
     denoConfigPath?: string;
     importMapURL?: string;
     nodeModulesDir?: boolean;
-    bundleTargets?: (RegExp | string)[];
     denoPluginLoader?: "native" | "portable";
 };
 
-export type CompleteBuilderCommonOptions = {
+export type InternalBuilderCommonOptions = {
     esbuildPlugins: esbuild.Plugin[];
     esbuildPluginsLater: esbuild.Plugin[];
     outdir: string,
     outbase: string;
-    serve: CompleteServeOptions;
+    serve: InternalServeOptions;
     esbuildOptions?: esbuild.BuildOptions,
     treeShaking: esbuild.BuildOptions["treeShaking"],
     sourcesContent?: esbuild.BuildOptions["sourcesContent"],
@@ -49,27 +47,25 @@ export type CompleteBuilderCommonOptions = {
     minifySyntax: boolean;
     minifyIdentifiers: boolean,
     minifyWhitespace: boolean,
-    staticResources: string[];
     denoConfigPath?: string;
     importMapURL?: string;
     nodeModulesDir?: boolean;
-    bundleTargets: (RegExp | string)[];
     denoPluginLoader?: "native" | "portable";
 };
 
-export type CompleteBuilderOptions = CompleteBuilderOptionsWithDocument | CompleteBuilderOptionsWithEntryPoints;
+export type InternalBuilderOptions = InternalBuilderOptionsWithDocument | InternalBuilderOptionsWithEntryPoints;
 
-export type CompleteBuilderOptionsWithDocument = {
+export type InternalBuilderOptionsWithDocument = {
     documentFilePath: string;
-} & CompleteBuilderCommonOptions;
+} & InternalBuilderCommonOptions;
 
-export type CompleteBuilderOptionsWithEntryPoints = {
+export type InternalBuilderOptionsWithEntryPoints = {
     entryPoints: [string, ...string[]],
-} & CompleteBuilderCommonOptions;
+} & InternalBuilderCommonOptions;
 
-export type CompleteServeOptions = {
+export type InternalServeOptions = {
     port: number;
     watch: (string | { path: string, recursive: boolean; })[];
 };
 
-export type ServeOptions = Partial<CompleteServeOptions>;
+export type ServeOptions = Partial<InternalServeOptions>;
