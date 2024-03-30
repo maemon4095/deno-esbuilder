@@ -51,7 +51,7 @@ export class Builder {
 
             return (p: string) => {
                 for (const [rpath, dst] of staticResources) {
-                    if (path.normalize(p) === path.resolve(rpath)) {
+                    if (p === path.resolve(rpath)) {
                         return dst;
                     }
                 }
@@ -61,9 +61,10 @@ export class Builder {
 
         const outdir = builderOptions.outdir;
         for await (const e of watcher) {
-            console.log(`File Update: (${e.kind}) ${e.paths}.`);
             for (const p of e.paths) {
-                const relative = getStaticResourceRelativePath(p);
+                const normalized = path.normalize(p);
+                console.log(`File Update: (${e.kind}) ${normalized}.`);
+                const relative = getStaticResourceRelativePath(normalized);
                 if (relative) {
                     await fs.copy(p, path.join(outdir, relative), { overwrite: true });
                 }

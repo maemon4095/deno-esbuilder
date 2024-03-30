@@ -28,55 +28,83 @@ export function preprocessDocument(options: InternalBuilderOptionsWithDocument, 
 
     for (const e of documentRoot.querySelectorAll(`script[src]`)) {
         const rawsource = e.getAttribute("src")!;
-        if (e.hasAttribute(BUNDLE_TARGET_ATTRIBUTE)) {
-            if (e.getAttribute("type") !== "module") throw new Error("bundle target script type must be module.");
-            if (isURL(rawsource)) throw new Error("bundle remote script is not supported.");
-            const source = normalizeDocumentRelativePath(rawsource);
-            const ext = posixPath.extname(source);
-            const src = tryRelative(options.outbase, source.substring(0, source.length - ext.length));
-            e.setAttribute("src", `${src}.js`);
-            entryPoints.push(source);
-            continue;
-        }
-        if (e.hasAttribute(STATIC_RESOURCE_ATTRIBUTE)) {
-            if (isURL(rawsource)) throw new Error("embed remote script is not supported.");
-            const source = normalizeDocumentRelativePath(rawsource);
-            const src = tryRelative(options.outbase, source);
-            e.setAttribute("src", src);
-            staticResources.push([posixPath.resolve(source), src]);
-            continue;
+        const ty = preprocessElem(e);
+
+        switch (ty) {
+            case "bundle": {
+                if (e.getAttribute("type") !== "module") throw new Error("bundle target script type must be module.");
+                if (isURL(rawsource)) throw new Error("bundle remote script is not supported.");
+                const source = normalizeDocumentRelativePath(rawsource);
+                const ext = posixPath.extname(source);
+                const src = tryRelative(options.outbase, source.substring(0, source.length - ext.length));
+                e.setAttribute("src", `${src}.js`);
+                entryPoints.push(source);
+                break;
+            }
+            case "static": {
+                if (isURL(rawsource)) throw new Error("embed remote script is not supported.");
+                const source = normalizeDocumentRelativePath(rawsource);
+                const src = tryRelative(options.outbase, source);
+                e.setAttribute("src", src);
+                staticResources.push([posixPath.resolve(source), src]);
+                break;
+            }
         }
     }
 
     for (const e of documentRoot.querySelectorAll(`sources[srcset]`)) {
-        if (e.hasAttribute(BUNDLE_TARGET_ATTRIBUTE)) {
-            throw new Error("bundle source element with srcset attribute is not supported.");
-        }
-
-        if (e.hasAttribute(STATIC_RESOURCE_ATTRIBUTE)) {
-            throw new Error("embed source element with srcset attribute is not supported.");
+        const ty = preprocessElem(e);
+        switch (ty) {
+            case "bundle":
+                throw new Error("bundle source element with srcset attribute is not supported.");
+            case "static":
+                throw new Error("embed source element with srcset attribute is not supported.");
         }
     }
 
     for (const [attrName, e] of ordinaryTargetElems) {
         const rawAttr = e.getAttribute(attrName)!;
         const attr = normalizeDocumentRelativePath(rawAttr);
-        if (e.hasAttribute(BUNDLE_TARGET_ATTRIBUTE)) {
-            if (isURL(attr)) throw new Error("bundle remote target is not supported.");
-            const srcattr = tryRelative(options.outbase, attr);
-            e.setAttribute(attrName, srcattr);
-            entryPoints.push(attr);
-            continue;
-        }
+        const ty = preprocessElem(e);
 
-        if (e.hasAttribute(STATIC_RESOURCE_ATTRIBUTE)) {
-            if (isURL(attr)) throw new Error("embed remote resource is not supported.");
-            const srcattr = tryRelative(options.outbase, attr);
-            e.setAttribute(attrName, srcattr);
-            staticResources.push([posixPath.resolve(attr), srcattr]);
-            continue;
+        switch (ty) {
+            case "bundle": {
+                if (isURL(attr)) throw new Error("bundle remote target is not supported.");
+                const srcattr = tryRelative(options.outbase, attr);
+                e.setAttribute(attrName, srcattr);
+                entryPoints.push(attr);
+                break;
+            }
+            case "static": {
+                if (isURL(attr)) throw new Error("embed remote resource is not supported.");
+                const srcattr = tryRelative(options.outbase, attr);
+                e.setAttribute(attrName, srcattr);
+                staticResources.push([posixPath.resolve(attr), srcattr]);
+                break;
+            }
         }
     }
 
     return { entryPoints, staticResources };
+}
+
+type TargetType = "static" | "bundle" | null;
+
+function preprocessElem(e: HTMLElement): TargetType {
+    const isBundleTarget = e.hasAttribute(BUNDLE_TARGET_ATTRIBUTE);
+    const isStaticResource = e.hasAttribute(STATIC_RESOURCE_ATTRIBUTE);
+
+    if (isBundleTarget && isStaticResource) {
+        throw new Error("content cannot be both static resource and bundle target.");
+    }
+
+    if (isBundleTarget) {
+        e.removeAttribute(BUNDLE_TARGET_ATTRIBUTE);
+        return "bundle";
+    };
+    if (isStaticResource) {
+        e.removeAttribute(BUNDLE_TARGET_ATTRIBUTE);
+        return "static";
+    }
+    return null;
 }
