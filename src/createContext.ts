@@ -4,6 +4,7 @@ import { fs, posixPath } from "./deps/std.ts";
 import { InternalBuilderOptions } from "./options.ts";
 import { preprocessDocument } from "./preprocessDocument.ts";
 import { parse as parseDOM } from "npm:node-html-parser";
+import LoaderOverride from "../plugins/loaderOverride/mod.ts";
 
 export async function createContext(options: InternalBuilderOptions) {
     if (!(await fs.exists(options.outdir))) {
@@ -33,9 +34,20 @@ export async function createContext(options: InternalBuilderOptions) {
         }
     }
 
+    const loaderOverridePlugin: esbuild.Plugin[] = [];
+    if (options.loader) {
+        loaderOverridePlugin.push(
+            LoaderOverride({
+                importMap: options.importMapURL ?? options.denoConfigPath,
+                loader: options.loader
+            })
+        );
+    }
+
     const esbuildOptions: esbuild.BuildOptions = {
         plugins: [
             ...options.esbuildPlugins,
+            ...loaderOverridePlugin,
             ...denoPlugins({
                 configPath: options.denoConfigPath !== undefined ? posixPath.resolve(options.denoConfigPath) : undefined,
                 importMapURL: options.importMapURL,

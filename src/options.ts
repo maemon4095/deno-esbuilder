@@ -30,6 +30,9 @@ export type BuilderCommonOptions = {
     importMapURL?: string;
     nodeModulesDir?: boolean;
     denoPluginLoader?: "native" | "portable";
+    loader?: {
+        [ext: `.${string}`]: esbuild.Loader;
+    };
 };
 
 export type InternalBuilderCommonOptions = {
@@ -51,6 +54,9 @@ export type InternalBuilderCommonOptions = {
     importMapURL?: string;
     nodeModulesDir?: boolean;
     denoPluginLoader?: "native" | "portable";
+    loader?: {
+        [ext: `.${string}`]: esbuild.Loader;
+    };
 };
 
 export type InternalBuilderOptions = InternalBuilderOptionsWithDocument | InternalBuilderOptionsWithEntryPoints;
