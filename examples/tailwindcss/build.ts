@@ -1,21 +1,29 @@
 import { Builder } from "../../src/builder.ts";
 import { BuilderOptions } from "../../src/options.ts";
 import tailwindcss from "npm:tailwindcss";
-import { postCssPlugin } from "../../plugins/postCssPlugin.ts";
+import postCssPlugin from "../../plugins/postCssPlugin.ts";
 import tailwindConfig from "./tailwind.config.js";
-
 const mode = Deno.args.at(0);
 if (mode === undefined) {
     throw new Error("no mode was provided");
 }
 
 const options: BuilderOptions = {
+    documentFilePath: "./index.html",
     denoConfigPath: "./deno.json",
-    bundleTargets: [/.*\.(jsx|tsx|js|ts|css)/],
+    outbase: "./src",
+    serve: {
+        watch: ["./src", "./public"]
+    },
+    loader: {
+        ".svg": "file"
+    },
     esbuildPlugins: [
-        postCssPlugin([
-            tailwindcss(tailwindConfig)
-        ])
+        postCssPlugin({
+            plugins: [
+                tailwindcss(tailwindConfig)
+            ]
+        })
     ]
 };
 

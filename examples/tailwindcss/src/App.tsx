@@ -1,40 +1,39 @@
 import React, { useState } from "react";
+// @deno-types="@types/file.d.ts"
+import ReactLogo from "../public/react-logo.svg";
+// @deno-types="@types/file.d.ts"
+import TailwindLogo from "../public/tailwind-logo-light.svg";
 export default function App() {
-  const [greetMsg, setGreetMsg] = useState("");
-  const [name, setName] = useState("");
-
   return (
-    <div className="container">
-      <h1 className="text-3xl font-bold underline">Welcome to Tauri!</h1>
+    <div className="w-full h-full sm:h-auto sm:w-[640px] mx-auto text-center sm:shadow bg-slate-100 sm:rounded-xl py-12 sm:mt-12">
+      <h1 className="text-3xl font-bold mt-0">
+        Tailwind CSS Example
+      </h1>
 
-      <div className="row">
-        <a href="https://deno.com" target="_blank">
+      <div className="flex sm:flex-row flex-col items-center gap-4 justify-center">
+        <a
+          href="https://reactjs.org"
+          target="_blank"
+        >
           <img
-            src="https://camo.githubusercontent.com/7a37608c39244ad994b53f25944b2718658e6d6558c8309bee7696530cf82bdc/68747470733a2f2f64656e6f2e6c616e642f6c6f676f2e737667"
-            className="logo deno"
-            alt="Deno logo"
+            src={ReactLogo}
+            alt="React logo"
+            className="object-contain size-48"
           />
         </a>
-        <a href="https://tauri.app" target="_blank">
-          <img src="/tauri.svg" className="logo tauri" alt="Tauri logo" />
-        </a>
-        <a href="https://reactjs.org" target="_blank">
-          <img src={"/react.svg"} className="logo react" alt="React logo" />
+        <a
+          href="https://tailwindcss.com"
+          target="_blank"
+        >
+          <img
+            src={TailwindLogo}
+            alt="Tailwind CSS logo"
+            className="object-contain size-48"
+          />
         </a>
       </div>
 
-      <p>Click on the Tauri, Deno, and React logos to learn more.</p>
-
-      <form className="row">
-        <input
-          id="greet-input"
-          onChange={(e) => setName(e.currentTarget.value)}
-          placeholder="Enter a name..."
-        />
-        <button type="submit">Greet</button>
-      </form>
-
-      <p>{greetMsg}</p>
+      <p>Click on the Tailwind and React logos to learn more.</p>
     </div>
   );
 }
