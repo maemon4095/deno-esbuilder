@@ -1,9 +1,5 @@
-/// <reference lib="dom" />
-/// <reference lib="dom.iterable" />
-
-import React from "react";
+import { h, render } from "preact";
 import App from "./App.tsx";
-import ReactDOM from "react-dom/client";
 
 // deno-lint-ignore no-unused-labels
 DEV: {
@@ -28,8 +24,7 @@ DEV: {
   });
 }
 
-ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
-  <React.StrictMode>
-    <App />
-  </React.StrictMode>,
+render(
+  <App />,
+  document.getElementById("root") as HTMLElement,
 );

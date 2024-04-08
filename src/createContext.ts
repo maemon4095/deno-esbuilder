@@ -43,13 +43,22 @@ export async function createContext(options: InternalBuilderOptions) {
             })
         );
     }
+    const configPath = options.denoConfigPath && posixPath.resolve(options.denoConfigPath);
+    const denoConfig: undefined | {
+        compilerOptions?: {
+            jsx?: esbuild.BuildOptions["jsx"];
+            jsxFactory?: esbuild.BuildOptions["jsxFactory"];
+            jsxFragmentFactory?: esbuild.BuildOptions["jsxFragment"];
+            jsxImportSource?: esbuild.BuildOptions["jsxImportSource"];
+        };
+    } = configPath && JSON.parse(await Deno.readTextFile(configPath));
 
     const esbuildOptions: esbuild.BuildOptions = {
         plugins: [
             ...options.esbuildPlugins,
             ...loaderOverridePlugin,
             ...denoPlugins({
-                configPath: options.denoConfigPath !== undefined ? posixPath.resolve(options.denoConfigPath) : undefined,
+                configPath,
                 importMapURL: options.importMapURL,
                 nodeModulesDir: options.nodeModulesDir,
                 loader: options.denoPluginLoader
@@ -68,6 +77,11 @@ export async function createContext(options: InternalBuilderOptions) {
         minifySyntax: options.minifySyntax,
         minifyIdentifiers: options.minifyIdentifiers,
         minifyWhitespace: options.minifyWhitespace,
+
+        jsx: denoConfig?.compilerOptions?.jsx,
+        jsxFactory: denoConfig?.compilerOptions?.jsxFactory,
+        jsxFragment: denoConfig?.compilerOptions?.jsxFragmentFactory,
+        jsxImportSource: denoConfig?.compilerOptions?.jsxImportSource,
 
         bundle: true,
         format: "esm",

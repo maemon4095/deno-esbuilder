@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { h } from "preact";
 // @deno-types="@types/file.d.ts"
 import ReactLogo from "../public/react-logo.svg";
 // @deno-types="@types/file.d.ts"
