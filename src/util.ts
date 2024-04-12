@@ -18,12 +18,6 @@ export function tryRelative(from: string, to: string) {
     return r;
 }
 
-export async function safeRemove(path: string) {
-    if (await fs.exists(path)) {
-        await Deno.remove(path, { recursive: true });
-    }
-}
-
 export function watch(targets: (string | { path: string, recursive: boolean; })[]) {
     const recursives = targets.flatMap(t => typeof t === "string" ? [t] : t.recursive ? [t.path] : []);
     const shallows = targets.flatMap(t => typeof t === "string" ? [] : t.recursive ? [] : [t.path]);

@@ -3,7 +3,7 @@ import esbuild from "./deps/esbuild.ts";
 import { fs } from "./deps/std.ts";
 import { path } from "./deps/std.ts";
 import { preprocessOptions } from "./preprocessOptions.ts";
-import { safeRemove, watch } from "./util.ts";
+import { watch } from "./util.ts";
 import { createContext } from "./createContext.ts";
 
 export const BUNDLE_TARGET_ATTRIBUTE = "data-esbuilder-bundle";
@@ -20,7 +20,7 @@ export class Builder {
         const { context } = await createContext(options);
 
         console.log("Building...");
-        await safeRemove(options.outdir);
+        await fs.emptyDir(options.outdir);
         const result = await context.rebuild();
         console.log("Done build!");
         console.log(result);
@@ -30,7 +30,7 @@ export class Builder {
 
     async serve(options: Partial<ServeOptions> = {}) {
         const builderOptions = this.#options;
-        await safeRemove(builderOptions.outdir);
+        await fs.emptyDir(builderOptions.outdir);
         if (options.port !== undefined) {
             builderOptions.serve.port = options.port;
         }
