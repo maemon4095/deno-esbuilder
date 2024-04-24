@@ -4,7 +4,7 @@ import { fs } from "./deps/std.ts";
 import { path } from "./deps/std.ts";
 import { preprocessOptions } from "./preprocessOptions.ts";
 import { watch } from "./util.ts";
-import { createContext } from "./createContext.ts";
+import { initialize } from "./initialize.ts";
 
 export const BUNDLE_TARGET_ATTRIBUTE = "data-esbuilder-bundle";
 export const STATIC_RESOURCE_ATTRIBUTE = "data-esbuilder-static";
@@ -16,16 +16,15 @@ export class Builder {
     }
 
     async build() {
-        const options = this.#options;
-        const { context } = await createContext(options);
-
         console.log("Building...");
+        const options = this.#options;
         await fs.emptyDir(options.outdir);
+        const { context } = await initialize(options);
         const result = await context.rebuild();
-        console.log("Done build!");
         console.log(result);
         await context.dispose();
         esbuild.stop();
+        console.log("Done build!");
     }
 
     async serve(options: Partial<ServeOptions> = {}) {
@@ -37,7 +36,7 @@ export class Builder {
         if (options.watch !== undefined) {
             builderOptions.serve.watch = options.watch;
         }
-        const { context, staticResources } = await createContext(builderOptions);
+        const { context, staticResources } = await initialize(builderOptions);
         const { host, port } = await context.serve({ port: builderOptions.serve.port, servedir: builderOptions.outdir, });
         const origin = host === "0.0.0.0" ? "localhost" : host;
         console.log(`Serving on http://${origin}:${port}`);
