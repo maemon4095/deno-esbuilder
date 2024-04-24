@@ -6,7 +6,7 @@ import { preprocessDocument } from "./preprocessDocument.ts";
 import { parse as parseDOM } from "npm:node-html-parser";
 import LoaderOverride from "../plugins/loaderOverride/mod.ts";
 
-export async function createContext(options: InternalBuilderOptions) {
+export async function initialize(options: InternalBuilderOptions) {
     if (!(await fs.exists(options.outdir))) {
         await Deno.mkdir(options.outdir);
     }
