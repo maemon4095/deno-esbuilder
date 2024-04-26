@@ -26,6 +26,7 @@ export function preprocessOptions(rawOptions: BuilderOptions): InternalBuilderOp
     options.nodeModulesDir = rawOptions.nodeModulesDir;
     options.denoPluginLoader = rawOptions.denoPluginLoader;
     options.loader = rawOptions.loader;
+    options.clearDistDir = rawOptions.clearDistDir ?? false;
 
     if ("entryPoints" in rawOptions) {
         const entryPoints = rawOptions.entryPoints;

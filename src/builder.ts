@@ -18,7 +18,9 @@ export class Builder {
     async build() {
         console.log("Building...");
         const options = this.#options;
-        await fs.emptyDir(options.outdir);
+        if (options.clearDistDir) {
+            await fs.emptyDir(options.outdir);
+        }
         const { context } = await initialize(options);
         const result = await context.rebuild();
         console.log(result);
@@ -29,7 +31,9 @@ export class Builder {
 
     async serve(options: Partial<ServeOptions> = {}) {
         const builderOptions = this.#options;
-        await fs.emptyDir(builderOptions.outdir);
+        if (builderOptions.clearDistDir) {
+            await fs.emptyDir(builderOptions.outdir);
+        }
         if (options.port !== undefined) {
             builderOptions.serve.port = options.port;
         }

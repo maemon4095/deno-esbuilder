@@ -33,6 +33,7 @@ export type BuilderCommonOptions = {
     loader?: {
         [ext: `.${string}`]: esbuild.Loader;
     };
+    clearDistDir?: boolean,
 };
 
 export type InternalBuilderCommonOptions = {
@@ -57,6 +58,7 @@ export type InternalBuilderCommonOptions = {
     loader?: {
         [ext: `.${string}`]: esbuild.Loader;
     };
+    clearDistDir: boolean;
 };
 
 export type InternalBuilderOptions = InternalBuilderOptionsWithDocument | InternalBuilderOptionsWithEntryPoints;
