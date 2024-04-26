@@ -5,9 +5,14 @@ export default function loaderOverride(options: { importMap?: string | ImportMap
     const { importMap, loader } = options;
     const importMapResolver = createResolverFromImportMap(importMap ?? {});
     const filter = (() => {
+        const extensions = Object.keys(loader);
+        if (extensions.length === 0) {
+            return /^\0$/; // never match
+        }
+
         let pattern = "^.*(";
         let first = true;
-        for (const ext of Object.keys(loader)) {
+        for (const ext of extensions) {
             if (first) {
                 first = false;
             } else {
