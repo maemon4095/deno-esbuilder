@@ -1,15 +1,14 @@
 import { BUNDLE_TARGET_ATTRIBUTE, STATIC_RESOURCE_ATTRIBUTE } from "./builder.ts";
 import { path } from "./deps/std.ts";
 import { InternalBuilderOptionsWithDocument } from "./options.ts";
-import { isURL, replaceBackslash, tryRelative, withoutExt } from "./util.ts";
+import { isURL, replaceBackslash, tryRelative, withoutExt, relative, esbuildEscape } from "./util.ts";
 import { HTMLElement } from "npm:node-html-parser";
 export function preprocessDocument(options: InternalBuilderOptionsWithDocument, documentRoot: HTMLElement) {
     const entryPoints: string[] = [];
     const staticResources: [string, string][] = []; // absolute resource path and document relative resource path pair
-    // convert document relative path to absolute path
+    // convert document relative path to relative from current dir 
     const normalizeDocumentRelativePath = (() => {
-        const base = path.dirname(options.documentFilePath);
-        return (p: string) => path.normalize(path.join(base, p));
+        return (p: string) => path.normalize(path.join(options.documentFileDir, p));
     })();
 
     const ordinaryTargetElems = (() => {
@@ -35,8 +34,8 @@ export function preprocessDocument(options: InternalBuilderOptionsWithDocument, 
                 if (e.getAttribute("type") !== "module") throw new Error("bundle target script type must be module.");
                 if (isURL(rawsource)) throw new Error("bundle remote script is not supported.");
                 const source = normalizeDocumentRelativePath(rawsource);
-                const relativeSrc = tryRelative(options.outbase, source) ?? path.relative(options.documentFileDir, source);
-                const src = replaceBackslash(relativeSrc);
+                let src = tryRelative(options.outbase, source) ?? relative(options.documentFileDir, source);
+                src = esbuildEscape(replaceBackslash(src));
                 e.setAttribute("src", `${withoutExt(src)}.js`);
                 entryPoints.push(source);
                 break;
@@ -44,10 +43,10 @@ export function preprocessDocument(options: InternalBuilderOptionsWithDocument, 
             case "static": {
                 if (isURL(rawsource)) throw new Error("embed remote script is not supported.");
                 const source = normalizeDocumentRelativePath(rawsource);
-                const relativeSrc = tryRelative(options.outbase, source) ?? path.relative(options.documentFileDir, source);
-                const src = replaceBackslash(relativeSrc);
+                let src = tryRelative(options.outbase, source) ?? relative(options.documentFileDir, source);
+                src = esbuildEscape(replaceBackslash(src));
                 e.setAttribute("src", src);
-                staticResources.push([path.resolve(source), relativeSrc]);
+                staticResources.push([path.resolve(source), src]);
                 break;
             }
         }
@@ -71,16 +70,16 @@ export function preprocessDocument(options: InternalBuilderOptionsWithDocument, 
         switch (ty) {
             case "bundle": {
                 if (isURL(attr)) throw new Error("bundle remote target is not supported.");
-                const relativeAttr = tryRelative(options.outbase, attr) ?? path.relative(options.documentFileDir, attr);
-                const srcattr = replaceBackslash(relativeAttr);
+                let srcattr = tryRelative(options.outbase, attr) ?? relative(options.documentFileDir, attr);
+                srcattr = esbuildEscape(replaceBackslash(srcattr));
                 e.setAttribute(attrName, srcattr);
                 entryPoints.push(attr);
                 break;
             }
             case "static": {
                 if (isURL(attr)) throw new Error("embed remote resource is not supported.");
-                const relativeAttr = tryRelative(options.outbase, attr) ?? path.relative(options.documentFileDir, attr);
-                const srcattr = replaceBackslash(relativeAttr);
+                let srcattr = tryRelative(options.outbase, attr) ?? relative(options.documentFileDir, attr);
+                srcattr = esbuildEscape(replaceBackslash(srcattr));
                 e.setAttribute(attrName, srcattr);
                 staticResources.push([path.resolve(attr), srcattr]);
                 break;

@@ -11,6 +11,8 @@ export async function initialize(options: InternalBuilderOptions) {
         await Deno.mkdir(options.outdir);
     }
 
+    console.log(options);
+
     let entryPoints;
     let staticResources;
 

@@ -14,11 +14,19 @@ export function isURL(str: string): boolean {
 }
 
 export function tryRelative(from: string, to: string) {
-    const r = path.normalize(path.relative(from, to));
+    const r = relative(from, to);
     if (r.startsWith("..")) {
         return null;
     }
     return r;
+}
+
+export function relative(from: string, to: string) {
+    return path.normalize(path.relative(from, to));
+}
+
+export function relativeCwd(p: string) {
+    return relative(".", p);
 }
 
 export function withoutExt(p: string) {
@@ -40,3 +48,10 @@ export function watch(targets: (string | { path: string, recursive: boolean; })[
 export function replaceBackslash(p: string) {
     return p.replaceAll("\\", "/");
 }
+
+export function esbuildEscape(p: string) {
+    return p.replaceAll("..", "_.._");
+}
+
+
+
