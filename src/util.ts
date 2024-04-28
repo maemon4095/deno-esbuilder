@@ -1,9 +1,12 @@
 import { merge } from "./asyncIteratorExtensions.ts";
-import { fs, posixPath } from "./deps/std.ts";
+import { path } from "./deps/std.ts";
+
+export function unsafeAssertType<T>(_arg: unknown): asserts _arg is T { }
 
 export function isURL(str: string): boolean {
     try {
-        new URL(str);
+        console.log(new URL(str));
+
         return true;
     } catch {
         return false;
@@ -11,11 +14,16 @@ export function isURL(str: string): boolean {
 }
 
 export function tryRelative(from: string, to: string) {
-    const r = posixPath.normalize(posixPath.relative(from, to));
+    const r = path.normalize(path.relative(from, to));
     if (r.startsWith("..")) {
-        return to;
+        return null;
     }
     return r;
+}
+
+export function withoutExt(p: string) {
+    const ext = path.extname(p);
+    return p.substring(0, p.length - ext.length);
 }
 
 export function watch(targets: (string | { path: string, recursive: boolean; })[]) {
@@ -27,4 +35,8 @@ export function watch(targets: (string | { path: string, recursive: boolean; })[
         .concat(shallows.map(t => Deno.watchFs(t, { recursive: false })));
 
     return merge(...watchers);
+}
+
+export function replaceBackslash(p: string) {
+    return p.replaceAll("\\", "/");
 }

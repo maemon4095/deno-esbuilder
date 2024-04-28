@@ -1,6 +1,6 @@
 import esbuild from "./deps/esbuild.ts";
 import { denoPlugins } from "./deps/esbuild_deno_loader.ts";
-import { fs, posixPath } from "./deps/std.ts";
+import { fs, path } from "./deps/std.ts";
 import { InternalBuilderOptions } from "./options.ts";
 import { preprocessDocument } from "./preprocessDocument.ts";
 import { parse as parseDOM } from "npm:node-html-parser";
@@ -24,12 +24,12 @@ export async function initialize(options: InternalBuilderOptions) {
         entryPoints = pair.entryPoints;
         staticResources = pair.staticResources;
 
-        const outIndexFilePath = posixPath.join(options.outdir, posixPath.basename(options.documentFilePath));
+        const outIndexFilePath = path.join(options.outdir, path.basename(options.documentFilePath));
         const outIndexFile = await Deno.create(outIndexFilePath);
         await outIndexFile.write(new TextEncoder().encode(documentRoot.toString()));
         for (const [absolutepath, rpath] of staticResources) {
-            const dst = posixPath.join(options.outdir, rpath);
-            await Deno.mkdir(posixPath.dirname(dst), { recursive: true });
+            const dst = path.join(options.outdir, rpath);
+            await Deno.mkdir(path.dirname(dst), { recursive: true });
             await fs.copy(absolutepath, dst, { overwrite: true });
         }
     }
@@ -43,7 +43,7 @@ export async function initialize(options: InternalBuilderOptions) {
             })
         );
     }
-    const configPath = options.denoConfigPath && posixPath.resolve(options.denoConfigPath);
+    const configPath = options.denoConfigPath && path.resolve(options.denoConfigPath);
     const denoConfig: undefined | {
         compilerOptions?: {
             jsx?: esbuild.BuildOptions["jsx"];

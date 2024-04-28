@@ -1,15 +1,15 @@
 import { BUNDLE_TARGET_ATTRIBUTE, STATIC_RESOURCE_ATTRIBUTE } from "./builder.ts";
-import { posixPath } from "./deps/std.ts";
+import { path } from "./deps/std.ts";
 import { InternalBuilderOptionsWithDocument } from "./options.ts";
-import { isURL, tryRelative } from "./util.ts";
+import { isURL, replaceBackslash, tryRelative, withoutExt } from "./util.ts";
 import { HTMLElement } from "npm:node-html-parser";
 export function preprocessDocument(options: InternalBuilderOptionsWithDocument, documentRoot: HTMLElement) {
     const entryPoints: string[] = [];
     const staticResources: [string, string][] = []; // absolute resource path and document relative resource path pair
-    // convert document relative path to normalized path relative to current dir
+    // convert document relative path to absolute path
     const normalizeDocumentRelativePath = (() => {
-        const base = posixPath.dirname(options.documentFilePath);
-        return (p: string) => posixPath.normalize(posixPath.join(base, p));
+        const base = path.dirname(options.documentFilePath);
+        return (p: string) => path.normalize(path.join(base, p));
     })();
 
     const ordinaryTargetElems = (() => {
@@ -35,18 +35,19 @@ export function preprocessDocument(options: InternalBuilderOptionsWithDocument, 
                 if (e.getAttribute("type") !== "module") throw new Error("bundle target script type must be module.");
                 if (isURL(rawsource)) throw new Error("bundle remote script is not supported.");
                 const source = normalizeDocumentRelativePath(rawsource);
-                const ext = posixPath.extname(source);
-                const src = tryRelative(options.outbase, source.substring(0, source.length - ext.length));
-                e.setAttribute("src", `${src}.js`);
+                const relativeSrc = tryRelative(options.outbase, source) ?? path.relative(options.documentFileDir, source);
+                const src = replaceBackslash(relativeSrc);
+                e.setAttribute("src", `${withoutExt(src)}.js`);
                 entryPoints.push(source);
                 break;
             }
             case "static": {
                 if (isURL(rawsource)) throw new Error("embed remote script is not supported.");
                 const source = normalizeDocumentRelativePath(rawsource);
-                const src = tryRelative(options.outbase, source);
+                const relativeSrc = tryRelative(options.outbase, source) ?? path.relative(options.documentFileDir, source);
+                const src = replaceBackslash(relativeSrc);
                 e.setAttribute("src", src);
-                staticResources.push([posixPath.resolve(source), src]);
+                staticResources.push([path.resolve(source), relativeSrc]);
                 break;
             }
         }
@@ -70,16 +71,18 @@ export function preprocessDocument(options: InternalBuilderOptionsWithDocument, 
         switch (ty) {
             case "bundle": {
                 if (isURL(attr)) throw new Error("bundle remote target is not supported.");
-                const srcattr = tryRelative(options.outbase, attr);
+                const relativeAttr = tryRelative(options.outbase, attr) ?? path.relative(options.documentFileDir, attr);
+                const srcattr = replaceBackslash(relativeAttr);
                 e.setAttribute(attrName, srcattr);
                 entryPoints.push(attr);
                 break;
             }
             case "static": {
                 if (isURL(attr)) throw new Error("embed remote resource is not supported.");
-                const srcattr = tryRelative(options.outbase, attr);
+                const relativeAttr = tryRelative(options.outbase, attr) ?? path.relative(options.documentFileDir, attr);
+                const srcattr = replaceBackslash(relativeAttr);
                 e.setAttribute(attrName, srcattr);
-                staticResources.push([posixPath.resolve(attr), srcattr]);
+                staticResources.push([path.resolve(attr), srcattr]);
                 break;
             }
         }

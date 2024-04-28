@@ -65,6 +65,7 @@ export type InternalBuilderOptions = InternalBuilderOptionsWithDocument | Intern
 
 export type InternalBuilderOptionsWithDocument = {
     documentFilePath: string;
+    documentFileDir: string;
 } & InternalBuilderCommonOptions;
 
 export type InternalBuilderOptionsWithEntryPoints = {
