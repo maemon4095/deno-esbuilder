@@ -1,4 +1,5 @@
 import { esbuild, path } from "./deps.ts";
+import { isURL } from "./isURL.ts";
 
 export type ImportMap = { [prefix: string]: string; };
 export function createResolverFromImportMap(importMapOrPath: string | ImportMap) {
@@ -27,6 +28,12 @@ export function createResolverFromImportMap(importMapOrPath: string | ImportMap)
 }
 
 export function defaultResolve(args: esbuild.OnResolveArgs) {
+    if (isURL(args.path)) {
+        return args.path;
+    }
+    if (path.isAbsolute(args.path)) {
+        return args.path;
+    }
     if (args.importer) {
         return path.join(path.dirname(args.importer), args.path);
     } else {
