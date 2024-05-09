@@ -83,6 +83,8 @@ export async function initialize(options: InternalBuilderOptions) {
         jsxFragment: denoConfig?.compilerOptions?.jsxFragmentFactory,
         jsxImportSource: denoConfig?.compilerOptions?.jsxImportSource,
 
+        dropLabels: options.dropLabels,
+
         bundle: true,
         format: "esm",
         platform: "browser",
@@ -90,4 +92,4 @@ export async function initialize(options: InternalBuilderOptions) {
     };
 
     return { context: await esbuild.context(esbuildOptions), staticResources };
-}
+} 
