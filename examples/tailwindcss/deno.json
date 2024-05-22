@@ -4,6 +4,10 @@
     "jsxFactory": "h",
     "jsxFragmentFactory": "Fragment"
   },
+  "tasks": {
+    "serve": "deno run -A ./build.ts serve",
+    "build": "deno run -A ./build.ts build"
+  },
   "imports": {
     "$std/": "https://deno.land/std@0.204.0/",
     "preact": "https://esm.sh/preact@10.19.7",

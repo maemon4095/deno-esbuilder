@@ -1,5 +1,5 @@
 import { merge } from "../src/asyncIteratorExtensions.ts";
-import { assertEquals } from "https://deno.land/std@0.206.0/assert/mod.ts";
+import { assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
 
 Deno.test("merge without args", async () => {
     const iter = merge()[Symbol.asyncIterator]();

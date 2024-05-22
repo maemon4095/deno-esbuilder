@@ -1,9 +1,9 @@
-import postcss from "npm:postcss";
+import postcss, { AcceptedPlugin } from "npm:postcss";
 import { esbuild } from "./util/deps.ts";
 import { ImportMap, createResolverFromImportMap, defaultResolve } from "./util/resolver.ts";
 
 export type Options = {
-    plugins?: postcss.AcceptedPlugin[];
+    plugins?: AcceptedPlugin[];
     importMap?: string | ImportMap;
 };
 export default function postCssPlugin(options: Options): esbuild.Plugin {
